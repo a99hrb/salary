@@ -5,154 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>حاسبة الراتب والمباشرة</title>
     
-    <!-- استدعاء Tailwind CSS للتصميم -->
+    <!-- استدعاء Tailwind CSS للتنسيق -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- استدعاء مكتبات React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- استدعاء Babel لترجمة كود JSX في المتصفح -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- خطوط عربية للحصول على مظهر أفضل (اختياري) -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+    </style>
 </head>
 <body>
-    <div class="min-h-screen bg-gray-200 flex flex-col items-center justify-center p-4 font-sans" dir="rtl">
-        <div class="bg-[#EAEAEA] w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden text-gray-800 mb-4">
-            
-            <!-- Header / Input Section -->
-            <div class="bg-white p-6 border-b border-gray-300">
-                <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">حاسبة الراتب والمباشرة</h1>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <label class="text-lg font-semibold text-gray-700">عدد أيام المباشرة:</label>
-                    
-                    <!-- أزرار الأسهم ومربع الإدخال -->
-                    <div class="flex items-center bg-gray-50 border-2 border-blue-400 rounded-xl overflow-hidden shadow-sm">
-                        <button id="btnIncrement" class="p-3 bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors focus:outline-none focus:bg-blue-300" aria-label="زيادة">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                        </button>
-                        
-                        <input id="daysInput" type="number" min="1" max="31" value="1" class="w-16 text-center text-2xl font-bold p-2 focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-blue-800" />
-                        
-                        <button id="btnDecrement" class="p-3 bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors focus:outline-none focus:bg-blue-300" aria-label="نقصان">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <!-- الحاوية التي سيتم عرض تطبيق React بداخلها -->
+    <div id="root"></div>
 
-            <!-- Calculations Section -->
-            <div class="p-6 md:p-10 space-y-8 text-lg md:text-xl font-medium tracking-wide">
+    <!-- كود React -->
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+          // تم تغيير القيمة الافتراضية هنا إلى 1
+          const [baseSalary, setBaseSalary] = useState(5500);
+          const [days, setDays] = useState(1); 
+          const [selectedMonth, setSelectedMonth] = useState("أبريل");
+
+          const months = [
+            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", 
+            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+          ];
+
+          // الثوابت والنسب المتفق عليها
+          const housingRatio = 0.25;  // بدل السكن 25%
+          const transportRatio = 0.10; // بدل النقل 10%
+          const gosiRatio = 0.09;      // خصم التأمينات 9%
+
+          // --- حسابات الشهر الكامل ---
+          const housing = baseSalary * housingRatio;
+          const transport = baseSalary * transportRatio;
+          const totalGross = baseSalary + housing + transport;
+          
+          // خصم التأمينات (من الأساسي + السكن فقط)
+          const gosiBase = baseSalary + housing;
+          const monthlyGosi = gosiBase * gosiRatio;
+          const monthlyNet = totalGross - monthlyGosi;
+
+          // --- حسابات أيام المباشرة (الشهر الماضي) ---
+          const dailyNet = monthlyNet / 30;
+          const totalDaysNet = dailyNet * days;
+          const totalDaysGosi = (monthlyGosi / 30) * days;
+
+          // --- حساب فترة المباشرة ---
+          const startDay = 30 - days + 1;
+          const periodText = days > 0 
+            ? `من ${startDay} ${selectedMonth} إلى 30 ${selectedMonth}`
+            : "لم يتم تحديد أيام";
+
+          return (
+            <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans" dir="rtl">
+              <div className="max-w-3xl mx-auto space-y-6">
                 
-                <!-- Daily Rates -->
-                <div class="space-y-1 text-gray-700">
-                    <p>5500 ÷ 30 = <span class="text-blue-500">183.333</span></p>
-                    <p>1375 ÷ 30 = <span class="text-blue-500">45.833</span></p>
-                    <p>550 ÷ 30 = <span class="text-blue-500">18.333</span></p>
-                </div>
+                {/* بطاقة المدخلات */}
+                <div className="bg-white rounded-3xl shadow-sm p-6 md:p-8 border border-slate-200">
+                  <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <span className="bg-blue-600 w-1.5 h-6 rounded-full"></span>
+                    بيانات الراتب والمباشرة
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* إدخال الراتب الأساسي */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-500">الراتب الأساسي في العقد:</label>
+                      <div className="relative">
+                        <input 
+                          type="number" 
+                          value={baseSalary} 
+                          onChange={(e) => setBaseSalary(Number(e.target.value))}
+                          className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none text-2xl font-black text-blue-700"
+                        />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">ريال</span>
+                      </div>
+                    </div>
 
-                <!-- Gross for Days & GOSI -->
-                <div class="space-y-3">
-                    <p class="text-gray-700">
-                        (183.333 × <span class="days-text">1</span>) + (45.833 × <span class="days-text">1</span>) = <span id="step1Total" class="text-blue-500">0.000</span>
-                    </p>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p>
-                            <span class="step1-text">0.000</span> × 9% = <span id="gosiDeduction" class="text-teal-600 bg-teal-100/60 px-1.5 py-0.5 rounded">0.000</span>
-                        </p>
-                        <div class="flex items-center text-gray-600 text-sm md:text-base mr-2 md:mr-4 border-r-2 border-green-400 pr-2">
-                            نفس الخصم في تأميناتي
+                    {/* عداد الأيام واختيار الشهر */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-500">أيام المباشرة والشهر:</label>
+                      <div className="flex gap-2">
+                        <select 
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(e.target.value)}
+                          className="p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-slate-700 cursor-pointer"
+                        >
+                          {months.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                        
+                        <div className="flex-1 flex items-center bg-slate-50 border-2 border-slate-100 rounded-2xl overflow-hidden">
+                          <button 
+                            onClick={() => setDays(Math.max(0, days - 1))} 
+                            className="px-4 py-2 hover:bg-slate-200 text-xl font-bold transition-colors"
+                          >-</button>
+                          <input 
+                            type="number" 
+                            value={days} 
+                            onChange={(e) => setDays(Math.max(0, Math.min(30, Number(e.target.value))))}
+                            className="w-full text-center bg-transparent font-black text-xl outline-none"
+                          />
+                          <button 
+                            onClick={() => setDays(Math.min(30, days + 1))} 
+                            className="px-4 py-2 hover:bg-slate-200 text-xl font-bold transition-colors"
+                          >+</button>
                         </div>
+                      </div>
+                      
+                      {/* عرض فترة المباشرة */}
+                      <div className="mt-2 flex items-center gap-2 bg-indigo-50 text-indigo-700 p-3 rounded-xl border border-indigo-100">
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span className="font-bold text-sm">الفترة: <span className="underline decoration-2 underline-offset-4">{periodText}</span></span>
+                      </div>
                     </div>
+                  </div>
                 </div>
 
-                <!-- Salary for the specific days -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <p>
-                        <span class="step1-text">0.000</span> + (18.333 × <span class="days-text">1</span>) = <span id="salaryForDays" class="text-teal-600 bg-teal-100/60 px-1.5 py-0.5 rounded">0.000</span>
-                    </p>
-                    <div class="flex items-center text-gray-600 text-sm md:text-base mr-2 md:mr-4 border-r-2 border-green-400 pr-2">
-                        راتب الـ <span class="days-text mx-1">1</span> أيام اللي باشرتها
+                {/* ملخص الحسابات */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* الراتب الشهري المعتاد */}
+                  <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                    <h3 className="text-slate-500 font-bold text-xs mb-4 uppercase tracking-wider">الراتب الشهري الصافي (المعتاد)</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm"><span>إجمالي البدلات:</span> <span>{(housing + transport).toFixed(2)}</span></div>
+                      <div className="flex justify-between text-sm text-red-500 font-medium"><span>حسم التأمينات:</span> <span>-{monthlyGosi.toFixed(2)}</span></div>
+                      <div className="text-2xl font-black text-slate-800 pt-2 border-t mt-2">
+                        {monthlyNet.toLocaleString(undefined, {minimumFractionDigits: 2})} <small className="text-xs font-normal">ريال</small>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* مستحقات المباشرة */}
+                  <div className="bg-blue-600 p-6 rounded-3xl shadow-sm text-white">
+                    <h3 className="text-blue-100 font-bold text-xs mb-4 uppercase tracking-wider">مستحقات المباشرة ({days} أيام)</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm text-blue-100"><span>صافي اليوم الواحد:</span> <span>{dailyNet.toFixed(2)}</span></div>
+                      <div className="flex justify-between text-sm text-blue-200"><span>حسم مدة مضافه بأثر رجعي:</span> <span>-{totalDaysGosi.toFixed(2)}</span></div>
+                      <div className="text-2xl font-black pt-2 border-t border-blue-500 mt-2">
+                        {totalDaysNet.toLocaleString(undefined, {minimumFractionDigits: 2})} <small className="text-xs font-normal text-blue-100">ريال</small>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Full month regular calculations -->
-                <div class="flex flex-col md:flex-row gap-4 md:gap-8 pt-4">
-                    <p>7425 × 9% = <span class="text-blue-500">668.25</span></p>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p>7425 - 668.25 = <span class="text-teal-600 bg-teal-100/60 px-1.5 py-0.5 rounded">6756.75</span></p>
-                        <div class="flex items-center text-gray-600 text-sm md:text-base mr-2 border-r-2 border-green-400 pr-2">
-                            راتبنا الصافي كل شهر
-                        </div>
-                    </div>
+                {/* المجموع الكلي */}
+                <div className="bg-slate-900 rounded-3xl p-8 text-center text-white shadow-xl">
+                  <p className="text-slate-400 font-bold mb-2 text-xs tracking-widest uppercase">إجمالي المبلغ المتوقع إيداعه</p>
+                  <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">
+                    {(monthlyNet + totalDaysNet).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                    <span className="text-xl mr-3 text-slate-400 font-bold">ريال</span>
+                  </h1>
+                  <div className="mt-4 flex flex-wrap justify-center gap-3">
+                     <span className="bg-slate-800 text-slate-300 px-4 py-1.5 rounded-full text-xs border border-slate-700">راتب شهر كامل</span>
+                     <span className="bg-slate-800 text-slate-300 px-4 py-1.5 rounded-full text-xs border border-slate-700">{days} أيام مباشرة</span>
+                  </div>
                 </div>
 
-                <!-- Final Total -->
-                <div class="flex flex-wrap items-center gap-2 pt-6 mt-4 font-bold text-xl md:text-2xl border-t-2 border-gray-300">
-                    <p>
-                        6756.75 + <span id="salaryForDaysText">0.000</span> = <span id="finalTotal" class="text-teal-700 bg-teal-200/60 px-2 py-1 rounded shadow-sm">0.000</span>
-                    </p>
-                    <div class="flex items-center text-gray-700 text-base md:text-lg mr-2 md:mr-4 border-r-4 border-green-500 pr-2">
-                        راتب الشهر + <span class="days-text mx-1">1</span> أيام
-                    </div>
+                {/* تذييل الصفحة */}
+                <div className="text-center text-slate-400 text-[10px] font-medium pb-8 uppercase tracking-widest" dir="ltr">
+                   Logic: (Basic + 25% Housing + 10% Transport) - 9% GOSI (Basic+Housing) | Dev by Abdullah Alharbi
                 </div>
 
+              </div>
             </div>
-        </div>
+          );
+        };
 
-        <!-- حقوق النشر -->
-        <div class="text-gray-500 text-sm mt-2 font-medium tracking-wide">
-            Developed by <span class="font-bold text-gray-600">Abdullah Alharbi</span>
-        </div>
-    </div>
-
-    <!-- كود الجافاسكربت (بدون الحاجه لـ React او Babel) -->
-    <script>
-        const baseDaily = 183.333;
-        const allowance1Daily = 45.833;
-        const allowance2Daily = 18.333;
-        const fullMonthNet = 6756.75;
-
-        const daysInput = document.getElementById('daysInput');
-        const btnIncrement = document.getElementById('btnIncrement');
-        const btnDecrement = document.getElementById('btnDecrement');
-
-        // دالة الحساب والتحديث
-        function updateCalculations() {
-            let days = parseInt(daysInput.value);
-            if (isNaN(days) || days < 1) days = 1;
-            if (days > 31) days = 31;
-            
-            // العمليات الحسابية
-            const step1_total = (baseDaily * days) + (allowance1Daily * days);
-            const gosi_deduction = step1_total * 0.09;
-            const salary_for_days = step1_total + (allowance2Daily * days);
-            const final_total = fullMonthNet + salary_for_days;
-
-            // تحديث النصوص في الواجهة
-            document.getElementById('step1Total').innerText = step1_total.toFixed(3);
-            document.getElementById('gosiDeduction').innerText = gosi_deduction.toFixed(3);
-            document.getElementById('salaryForDays').innerText = salary_for_days.toFixed(3);
-            document.getElementById('salaryForDaysText').innerText = salary_for_days.toFixed(3);
-            document.getElementById('finalTotal').innerText = final_total.toFixed(3);
-
-            // تحديث الأرقام المتكررة
-            document.querySelectorAll('.step1-text').forEach(el => el.innerText = step1_total.toFixed(3));
-            document.querySelectorAll('.days-text').forEach(el => el.innerText = days);
-        }
-
-        // أحداث الأزرار
-        btnIncrement.addEventListener('click', () => {
-            if (daysInput.value < 31) {
-                daysInput.value = parseInt(daysInput.value) + 1;
-                updateCalculations();
-            }
-        });
-
-        btnDecrement.addEventListener('click', () => {
-            if (daysInput.value > 1) {
-                daysInput.value = parseInt(daysInput.value) - 1;
-                updateCalculations();
-            }
-        });
-
-        // حدث الكتابة اليدوية داخل المربع
-        daysInput.addEventListener('input', updateCalculations);
-
-        // تشغيل الحسابات لأول مرة عند فتح الصفحة
-        updateCalculations();
+        // تهيئة وتشغيل تطبيق React في العنصر المحدد
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
